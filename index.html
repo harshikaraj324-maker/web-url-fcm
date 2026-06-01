@@ -3,125 +3,613 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>URL Sender</title>
+<title>MR ROBOT - URL Sender</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #0a0f1a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-.box { background: #111827; border: 1px solid #1f2d44; border-radius: 14px; padding: 28px 24px; width: 100%; max-width: 420px; }
-h1 { font-size: 16px; font-weight: 900; margin-bottom: 4px; }
-.sub { font-size: 10px; color: #4a6fa5; margin-bottom: 20px; }
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
-.stat { background: #0d1b2e; border: 1px solid #1f2d44; border-radius: 8px; padding: 10px 8px; text-align: center; }
-.stat-n { font-size: 24px; font-weight: 900; color: #3b82f6; line-height: 1; }
-.stat-n.green { color: #22d3a5; }
-.stat-l { font-size: 9px; color: #4a6fa5; text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; }
-.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #1e3a5f; margin-right: 5px; vertical-align: middle; }
-.dot.on { background: #22d3a5; box-shadow: 0 0 6px #22d3a560; }
-.db-row { display: flex; align-items: center; margin-bottom: 16px; font-size: 10px; color: #4a6fa5; }
-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .4px; display: block; margin-bottom: 6px; }
-input[type=text] { width: 100%; background: #0d1b2e; border: 1.5px solid #1f2d44; border-radius: 7px; padding: 10px 12px; color: #e2e8f0; font-size: 13px; outline: none; margin-bottom: 12px; }
-input[type=text]:focus { border-color: #3b82f6; }
-.btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer; transition: all .15s; }
-.btn-send { background: linear-gradient(135deg, #2563eb, #4f46e5); color: #fff; }
-.btn-send:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px #2563eb40; }
-.btn-send:disabled { background: #1e293b; color: #334155; cursor: not-allowed; }
-.result { margin-top: 14px; background: #0d1b2e; border: 1px solid #1f2d44; border-radius: 8px; padding: 12px; font-size: 12px; font-family: monospace; color: #94a3b8; min-height: 48px; word-break: break-all; display: none; }
-.result.ok { border-color: #22d3a520; color: #22d3a5; }
-.result.err { border-color: #f8717120; color: #f87171; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.spin { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
+:root{--bg:#04101f;--sur:#0a1929;--card:#0d2137;--brd:#1a3554;--acc:#3b82f6;--grn:#22d3a5;--red:#f87171;--yel:#fbbf24;--txt:#e2e8f0;--dim:#94a3b8;--mut:#4a6fa5}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.hdr{display:flex;align-items:center;gap:10px;padding:8px 16px;background:linear-gradient(90deg,#040f1c,#091829);border-bottom:1px solid var(--brd);flex-shrink:0}
+.hdr-logo{width:30px;height:30px;background:linear-gradient(135deg,#2563eb,#6366f1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.hdr-t{font-size:13px;font-weight:900}
+.hdr-s{font-size:9px;color:var(--mut)}
+.hdr-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;border-radius:50%;background:#334155;flex-shrink:0;transition:all .3s}
+.dot.on{background:var(--grn);box-shadow:0 0 8px #22d3a570;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.stats{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--brd);flex-shrink:0}
+.stat{padding:7px 10px;border-right:1px solid var(--brd)}
+.stat:last-child{border-right:none}
+.stat-n{font-size:18px;font-weight:900;line-height:1}
+.b{color:#60a5fa}.g{color:var(--grn)}.r{color:var(--red)}.y{color:var(--yel)}
+.stat-l{font-size:8px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.layout{display:grid;grid-template-columns:260px 1fr;flex:1;min-height:0;overflow:hidden}
+.sb{background:var(--sur);border-right:1px solid var(--brd);display:flex;flex-direction:column;overflow:hidden}
+.sb-hdr{padding:7px 10px;border-bottom:1px solid var(--brd);flex-shrink:0}
+.sb-hdr h3{font-size:9px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.8px}
+.url-list{padding:5px 6px;max-height:170px;overflow-y:auto;flex-shrink:0}
+.url-item{display:flex;align-items:center;gap:5px;padding:5px 7px;border-radius:6px;cursor:pointer;margin-bottom:3px;border:1px solid transparent}
+.url-item:hover{background:var(--card)}
+.url-item.sel{background:#1d4ed815;border-color:#1d4ed840}
+.url-name{font-size:11px;font-weight:700;flex-shrink:0;max-width:70px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.url-val{font-size:9px;font-family:monospace;color:var(--mut);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.url-del{background:none;border:none;color:#475569;cursor:pointer;font-size:14px;flex-shrink:0;padding:0 2px;line-height:1}
+.url-del:hover{color:var(--red)}
+.url-add{padding:5px 6px;border-top:1px solid var(--brd);display:flex;gap:4px;flex-shrink:0}
+.url-add input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--brd);border-radius:5px;padding:4px 6px;color:var(--txt);font-size:10px;outline:none}
+.url-add input:focus{border-color:var(--acc)}
+.url-add .add-btn{background:var(--acc);border:none;border-radius:5px;color:#fff;font-size:10px;font-weight:800;padding:4px 9px;cursor:pointer;flex-shrink:0}
+.dev-hdr{padding:7px 10px;border-top:1px solid var(--brd);border-bottom:1px solid var(--brd);flex-shrink:0}
+.dev-hdr h3{font-size:9px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.8px}
+.tree{flex:1;overflow-y:auto;padding:5px}
+.app-item{border:1px solid var(--brd);border-radius:6px;margin-bottom:4px}
+.app-item.open{border-color:#1d4ed860}
+.app-hdr{padding:7px 8px;cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
+.app-hdr:hover{background:var(--card)}
+.app-arr{font-size:8px;color:var(--mut);transition:transform .2s;flex-shrink:0}
+.app-item.open .app-arr{transform:rotate(90deg)}
+.app-name{font-weight:700;font-size:11px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{font-size:9px;font-weight:800;padding:1px 5px;border-radius:99px;flex-shrink:0}
+.chip-b{background:#1a3554;color:#60a5fa}
+.chip-g{background:#16532030;color:var(--grn)}
+.devs-wrap{display:none;border-top:1px solid var(--brd);background:var(--bg);max-height:160px;overflow-y:auto}
+.app-item.open .devs-wrap{display:block}
+.dev{padding:5px 8px 5px 20px;display:flex;align-items:center;gap:5px;cursor:pointer;border-bottom:1px solid #0a1628}
+.dev:last-child{border-bottom:none}
+.dev:hover{background:#0a1929}
+.dev.sel{background:#1d4ed815;border-left:2px solid var(--acc)}
+.ddot{width:5px;height:5px;border-radius:50%;background:#1e3a5f;flex-shrink:0}
+.ddot.on{background:var(--grn)}
+.dname{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.main{overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);border:1px solid var(--brd);border-radius:10px;padding:14px}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ct{font-size:9px;font-weight:800;color:#60a5fa;text-transform:uppercase;letter-spacing:.8px}
+label{font-size:9px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
+select{width:100%;background:var(--bg);border:1.5px solid var(--brd);border-radius:6px;padding:8px 10px;color:var(--txt);font-size:12px;outline:none}
+select:focus{border-color:var(--acc)}
+.cur-url-box{background:var(--sur);border:1.5px solid var(--brd);border-radius:7px;padding:10px 12px;display:flex;align-items:center;gap:10px;min-height:42px}
+.cur-url-val{font-family:monospace;font-size:12px;color:#60a5fa;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cur-url-none{font-size:11px;color:#334155;font-style:italic}
+.payload-box{background:#020d1a;border:1px solid var(--brd);border-radius:6px;padding:10px 12px;font-size:11px;font-family:monospace;color:#60a5fa;line-height:1.9;margin-top:10px}
+.pk{color:var(--mut)}.ps{color:#a78bfa}.pn{color:#f59e0b}
+.batch-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.btns{display:flex;gap:7px;flex-wrap:wrap}
+.btn{padding:9px 16px;border-radius:7px;border:none;font-weight:800;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap}
+.btn-blue{background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff}
+.btn-blue:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 5px 20px #2563eb50}
+.btn-red{background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff}
+.btn-red:hover:not(:disabled){transform:translateY(-1px)}
+.btn-ghost{background:var(--sur);color:var(--dim);border:1px solid var(--brd)}
+.btn-ghost:hover{background:var(--brd);color:var(--txt)}
+.btn-sm{padding:5px 10px;font-size:10px;border-radius:5px}
+.btn:disabled{background:#1e293b !important;color:#334155 !important;cursor:not-allowed !important;transform:none !important;box-shadow:none !important}
+.prog-wrap{margin-top:12px;display:none}
+.prog-hdr{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--dim);margin-bottom:5px}
+.pw{height:4px;background:var(--brd);border-radius:99px;overflow:hidden;margin-bottom:5px}
+.pb{height:100%;background:linear-gradient(90deg,#2563eb,#6366f1,#22d3a5);border-radius:99px;width:0;transition:width .15s}
+.bi{font-size:10px;color:var(--mut);font-family:monospace}
+.stop-btn{background:#dc2626;border:none;border-radius:5px;color:#fff;font-size:10px;font-weight:800;padding:4px 10px;cursor:pointer}
+.summ{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:11px;flex-wrap:wrap}
+.res-wrap{max-height:220px;overflow-y:auto;border:1px solid var(--brd);border-radius:7px}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:6px 8px;font-size:8px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--brd);background:var(--bg);position:sticky;top:0;z-index:1}
+td{padding:6px 8px;border-bottom:1px solid #0a1628}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#0a1f35}
+.pill{font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px}
+.ok{background:#16532030;color:var(--grn)}
+.er{background:#7f1d1d30;color:var(--red)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:10px;height:10px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
 </style>
 </head>
 <body>
-<div class="box">
-  <h1>&#128279; URL Sender</h1>
-  <div class="sub">Direct FCM &bull; Neon DB</div>
 
-  <div class="db-row">
-    <span class="dot" id="dot"></span>
-    <span id="db-st">Connecting...</span>
+<header class="hdr">
+  <div class="hdr-logo">&#128279;</div>
+  <div>
+    <div class="hdr-t">MR ROBOT &mdash; URL Sender</div>
+    <div class="hdr-s">Direct Firebase FCM &bull; Batch Mode &bull; Neon DB</div>
   </div>
-
-  <div class="stats">
-    <div class="stat"><div class="stat-n" id="s-apps">-</div><div class="stat-l">Apps</div></div>
-    <div class="stat"><div class="stat-n" id="s-devs">-</div><div class="stat-l">Devices</div></div>
-    <div class="stat"><div class="stat-n green" id="s-fcm">-</div><div class="stat-l">FCM Tokens</div></div>
+  <div class="hdr-r">
+    <div class="dot" id="dot"></div>
+    <span id="db-st" style="font-size:10px;color:var(--mut)">Connecting...</span>
+    <button class="btn btn-ghost btn-sm" id="btn-ref">&#8635; Refresh</button>
   </div>
+</header>
 
-  <label>Backend URL</label>
-  <input type="text" id="url-input" placeholder="https://your-backend.com"/>
+<div class="stats">
+  <div class="stat"><div class="stat-n b" id="s-apps">-</div><div class="stat-l">Apps</div></div>
+  <div class="stat"><div class="stat-n b" id="s-devs">-</div><div class="stat-l">Devices</div></div>
+  <div class="stat"><div class="stat-n g" id="s-onl">-</div><div class="stat-l">Online</div></div>
+  <div class="stat"><div class="stat-n" id="s-fcm">-</div><div class="stat-l">FCM Ready</div></div>
+  <div class="stat"><div class="stat-n g" id="s-sent">0</div><div class="stat-l">Sent</div></div>
+  <div class="stat"><div class="stat-n r" id="s-fail">0</div><div class="stat-l">Failed</div></div>
+  <div class="stat"><div class="stat-n y" id="s-skip">0</div><div class="stat-l">Stopped</div></div>
+</div>
 
-  <button class="btn btn-send" id="btn-send">&#9889; Send to All Devices</button>
+<div class="layout">
+  <aside class="sb">
+    <div class="sb-hdr"><h3>&#127758; Saved URLs</h3></div>
+    <div class="url-list" id="url-list"></div>
+    <div class="url-add">
+      <input id="url-name" type="text" placeholder="Name" style="max-width:72px"/>
+      <input id="url-val" type="text" placeholder="https://..."/>
+      <button class="add-btn" id="btn-add">+Add</button>
+    </div>
+    <div class="dev-hdr"><h3>&#128241; Apps &amp; Devices</h3></div>
+    <div class="tree" id="tree"><div style="padding:10px;font-size:11px;color:var(--mut)">Loading...</div></div>
+  </aside>
 
-  <div class="result" id="result"></div>
+  <main class="main">
+    <div class="card">
+      <div class="ch">
+        <span class="ct">&#127758; Active URL</span>
+        <button class="btn btn-ghost btn-sm" id="btn-clr-url">Clear</button>
+      </div>
+      <div class="cur-url-box">
+        <span class="cur-url-none" id="cur-url-none">Select a URL from the sidebar</span>
+        <span class="cur-url-val" id="cur-url-val" style="display:none"></span>
+        <span id="cur-url-name" style="font-size:9px;color:var(--mut);flex-shrink:0;font-weight:800"></span>
+      </div>
+      <div class="payload-box">
+        <span class="pk">type:</span> <span class="ps">url_update</span><br>
+        <span class="pk">url:</span> <span class="ps" id="pv-url">(no URL selected)</span><br>
+        <span class="pk">android priority:</span> <span class="pn">HIGH</span><br>
+        <span class="pk">ttl:</span> <span class="ps">3600s</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch">
+        <span class="ct">&#128640; Batch Send</span>
+        <span id="sel-inf" style="font-size:10px;color:var(--mut);font-family:monospace"></span>
+      </div>
+      <div class="batch-row">
+        <div>
+          <label>Batch Size</label>
+          <select id="bsz">
+            <option value="5">5 per batch</option>
+            <option value="10" selected>10 per batch</option>
+            <option value="25">25 per batch</option>
+            <option value="50">50 per batch</option>
+            <option value="100">100 per batch</option>
+          </select>
+        </div>
+        <div>
+          <label>Delay Between Batches</label>
+          <select id="bdel">
+            <option value="0">No delay</option>
+            <option value="300">300ms</option>
+            <option value="500" selected>500ms</option>
+            <option value="1000">1 second</option>
+            <option value="2000">2 seconds</option>
+            <option value="3000">3 seconds</option>
+          </select>
+        </div>
+      </div>
+      <div class="btns">
+        <button class="btn btn-blue" id="btn-one">&#128241; Selected Device</button>
+        <button class="btn btn-blue" id="btn-app">&#128225; Selected App</button>
+        <button class="btn btn-red"  id="btn-all">&#9889; ALL Apps</button>
+        <button class="btn btn-ghost btn-sm" id="btn-clr">&#128465; Clear</button>
+      </div>
+      <div class="prog-wrap" id="prog">
+        <div class="prog-hdr">
+          <span id="pt">Ready</span>
+          <button class="stop-btn" id="stop-btn">&#9632; Stop</button>
+        </div>
+        <div class="pw"><div class="pb" id="pb"></div></div>
+        <div class="bi" id="bi"></div>
+      </div>
+    </div>
+
+    <div class="card" id="res-card" style="display:none">
+      <div class="ch">
+        <span class="ct">&#128202; Results</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" id="btn-copy">&#128203; Copy</button>
+          <button class="btn btn-ghost btn-sm" id="btn-clr2">Clear</button>
+        </div>
+      </div>
+      <div class="summ" id="summ"></div>
+      <div class="res-wrap">
+        <table>
+          <thead><tr><th>#</th><th>App</th><th>Device</th><th>Status</th><th>Response</th></tr></thead>
+          <tbody id="res-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
 </div>
 
 <script>
-(function() {
+(function () {
   'use strict';
 
-  function el(id) { return document.getElementById(id); }
+  var appsData = [];
+  var devsCache = {};
+  var curApp = null;
+  var curDev = null;
+  var curUrl = '';
+  var curUrlName = '';
+  var sentOk = 0, sentFail = 0, sentSkip = 0;
+  var stopFlag = false;
+  var savedUrls = [];
 
+  function h(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function el(id) { return document.getElementById(id); }
   function api(path, opts) {
     opts = opts || {};
-    opts.headers = Object.assign({'Content-Type': 'application/json'}, opts.headers || {});
+    opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers || {});
     return fetch(path, opts).then(function(r) {
-      return r.json().then(function(j) { return {ok: r.ok, status: r.status, data: j}; });
+      return r.json().then(function(j) { return {ok:r.ok, status:r.status, data:j}; });
     });
   }
 
-  function loadStats() {
-    api('/api/stats').then(function(r) {
-      if (!r.ok) { el('db-st').textContent = 'DB Error'; return; }
-      var s = r.data;
+  function loadAll() {
+    el('dot').className = 'dot';
+    el('db-st').textContent = 'Connecting...';
+    Promise.all([api('/api/stats'), api('/api/apps')]).then(function(res) {
+      var s = res[0].data;
       el('s-apps').textContent = s.apps;
       el('s-devs').textContent = s.devices;
+      el('s-onl').textContent = s.online;
       el('s-fcm').textContent = s.fcmReady;
       el('dot').className = 'dot on';
       el('db-st').textContent = 'Neon connected';
+      appsData = res[1].data || [];
+      devsCache = {};
+      renderTree();
     }).catch(function(e) {
-      el('db-st').textContent = 'Error: ' + e.message;
+      el('dot').className = 'dot';
+      el('db-st').textContent = 'DB Error: ' + e.message;
+      el('tree').innerHTML = '<div style="padding:8px;font-size:11px;color:var(--red)">' + h(e.message) + '</div>';
     });
   }
 
-  el('btn-send').addEventListener('click', function() {
-    var url = el('url-input').value.trim();
-    if (!url) { alert('URL dalo pehle'); return; }
-    if (!url.startsWith('http')) { alert('Valid URL chahiye (http...)'); return; }
-
-    var btn = el('btn-send');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spin"></span>Sending...';
-
-    var res = el('result');
-    res.style.display = 'none';
-    res.className = 'result';
-
-    api('/api/send-all', {
-      method: 'POST',
-      body: JSON.stringify({url: url})
-    }).then(function(r) {
-      btn.disabled = false;
-      btn.innerHTML = '&#9889; Send to All Devices';
-      res.style.display = 'block';
-      if (r.ok) {
-        res.className = 'result ok';
-        var d = r.data;
-        res.textContent = 'Done! Sent: ' + d.sent + ' | Failed: ' + d.failed + ' | Total: ' + d.total;
-      } else {
-        res.className = 'result err';
-        res.textContent = 'Error: ' + (r.data.error || JSON.stringify(r.data));
-      }
-    }).catch(function(e) {
-      btn.disabled = false;
-      btn.innerHTML = '&#9889; Send to All Devices';
-      res.style.display = 'block';
-      res.className = 'result err';
-      res.textContent = 'Error: ' + e.message;
+  function renderTree() {
+    var out = '';
+    for (var i = 0; i < appsData.length; i++) {
+      var a = appsData[i];
+      out += '<div class="app-item" id="ai' + i + '">';
+      out += '<div class="app-hdr" data-i="' + i + '" data-aid="' + h(a.appId) + '">';
+      out += '<span class="app-arr">&#9658;</span>';
+      out += '<span class="app-name">' + h(a.name) + '</span>';
+      out += '<span class="chip chip-b">' + a.deviceCount + '</span>';
+      out += '<span class="chip chip-g">' + a.fcmCount + ' FCM</span>';
+      out += '</div>';
+      out += '<div class="devs-wrap" id="ad' + i + '">';
+      out += '<div style="padding:6px 8px 6px 20px;font-size:10px;color:var(--mut)">Loading...</div>';
+      out += '</div></div>';
+    }
+    el('tree').innerHTML = out || '<div style="padding:8px;font-size:11px;color:var(--mut)">No apps</div>';
+    document.querySelectorAll('.app-hdr').forEach(function(hdr) {
+      hdr.addEventListener('click', function() {
+        var idx = parseInt(hdr.getAttribute('data-i'));
+        var aid = hdr.getAttribute('data-aid');
+        var item = el('ai' + idx);
+        var opening = !item.classList.contains('open');
+        item.classList.toggle('open', opening);
+        if (opening) { curApp = aid; loadDevs(idx, aid); updateSelInf(); }
+      });
     });
+  }
+
+  function loadDevs(idx, aid) {
+    if (devsCache[aid]) { renderDevs(idx, aid); return; }
+    api('/api/devices?appId=' + encodeURIComponent(aid)).then(function(r) {
+      devsCache[aid] = r.data || [];
+      renderDevs(idx, aid);
+    });
+  }
+
+  function renderDevs(idx, aid) {
+    var devs = devsCache[aid] || [];
+    var c = el('ad' + idx);
+    if (!devs.length) {
+      c.innerHTML = '<div style="padding:6px 8px 6px 20px;font-size:10px;color:var(--mut)">No devices</div>';
+      return;
+    }
+    var out = '';
+    for (var i = 0; i < devs.length; i++) {
+      var d = devs[i];
+      var sel = (curDev && curDev.id === d.deviceId) ? ' sel' : '';
+      out += '<div class="dev' + sel + '" data-did="' + h(d.deviceId) + '" data-aid="' + h(aid) + '">';
+      out += '<div class="ddot' + (d.status === 'online' ? ' on' : '') + '"></div>';
+      out += '<div class="dname">' + h(d.name) + '</div>';
+      out += d.hasFcm
+        ? '<span style="font-size:8px;color:var(--grn);flex-shrink:0">FCM</span>'
+        : '<span style="font-size:8px;color:#334155">-</span>';
+      out += '</div>';
+    }
+    c.innerHTML = out;
+    c.querySelectorAll('.dev').forEach(function(div) {
+      div.addEventListener('click', function() {
+        var did = div.getAttribute('data-did');
+        var daid = div.getAttribute('data-aid');
+        document.querySelectorAll('.dev').forEach(function(x) { x.classList.remove('sel'); });
+        div.classList.add('sel');
+        var list = devsCache[daid] || [];
+        for (var j = 0; j < list.length; j++) {
+          if (list[j].deviceId === did) {
+            curDev = {id: did, name: list[j].name, appId: daid};
+            break;
+          }
+        }
+        updateSelInf();
+      });
+    });
+  }
+
+  function updateSelInf() {
+    if (curDev) el('sel-inf').textContent = curDev.name + ' - ' + curDev.id;
+    else if (curApp) el('sel-inf').textContent = 'App: ' + curApp;
+    else el('sel-inf').textContent = '';
+  }
+
+  function loadUrls() {
+    try { savedUrls = JSON.parse(localStorage.getItem('mr_urls') || '[]'); } catch(e) { savedUrls = []; }
+    renderUrls();
+  }
+
+  function renderUrls() {
+    var c = el('url-list');
+    if (!savedUrls.length) {
+      c.innerHTML = '<div style="padding:6px;font-size:10px;color:var(--mut)">No URLs - add below</div>';
+      return;
+    }
+    var out = '';
+    for (var i = 0; i < savedUrls.length; i++) {
+      var u = savedUrls[i];
+      var sel = (curUrl === u.url) ? ' sel' : '';
+      out += '<div class="url-item' + sel + '" data-i="' + i + '">';
+      out += '<span class="url-name">' + h(u.name) + '</span>';
+      out += '<span class="url-val">' + h(u.url) + '</span>';
+      out += '<button class="url-del" data-i="' + i + '" title="Delete">x</button>';
+      out += '</div>';
+    }
+    c.innerHTML = out;
+    c.querySelectorAll('.url-item').forEach(function(item) {
+      item.addEventListener('click', function(e) {
+        if (e.target.classList.contains('url-del')) return;
+        var idx = parseInt(item.getAttribute('data-i'));
+        curUrl = savedUrls[idx].url;
+        curUrlName = savedUrls[idx].name;
+        updateCurUrl();
+        renderUrls();
+      });
+    });
+    c.querySelectorAll('.url-del').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var idx = parseInt(btn.getAttribute('data-i'));
+        if (savedUrls[idx].url === curUrl) { curUrl = ''; curUrlName = ''; updateCurUrl(); }
+        savedUrls.splice(idx, 1);
+        localStorage.setItem('mr_urls', JSON.stringify(savedUrls));
+        renderUrls();
+      });
+    });
+  }
+
+  function addUrl() {
+    var name = el('url-name').value.trim();
+    var val = el('url-val').value.trim();
+    if (!val) { alert('URL dalo'); return; }
+    if (!name) name = val.replace(/https?:\/\//, '').split('/')[0];
+    savedUrls.push({name: name, url: val});
+    localStorage.setItem('mr_urls', JSON.stringify(savedUrls));
+    el('url-name').value = '';
+    el('url-val').value = '';
+    renderUrls();
+  }
+
+  function updateCurUrl() {
+    if (curUrl) {
+      el('cur-url-none').style.display = 'none';
+      el('cur-url-val').style.display = 'inline';
+      el('cur-url-val').textContent = curUrl;
+      el('cur-url-name').textContent = curUrlName;
+      el('pv-url').textContent = curUrl;
+    } else {
+      el('cur-url-none').style.display = 'inline';
+      el('cur-url-val').style.display = 'none';
+      el('cur-url-name').textContent = '';
+      el('pv-url').textContent = '(no URL selected)';
+    }
+  }
+
+  function setButtons(dis) {
+    el('btn-one').disabled = dis;
+    el('btn-app').disabled = dis;
+    el('btn-all').disabled = dis;
+  }
+
+  function incStat(ok, skip) {
+    if (skip) { sentSkip++; el('s-skip').textContent = sentSkip; }
+    else if (ok) { sentOk++; el('s-sent').textContent = sentOk; }
+    else { sentFail++; el('s-fail').textContent = sentFail; }
+  }
+
+  function sendOne() {
+    if (!curDev) { alert('Device select karo sidebar mein'); return; }
+    if (!curUrl) { alert('Sidebar mein URL select karo'); return; }
+    var b = el('btn-one');
+    b.disabled = true;
+    b.innerHTML = '<span class="spin"></span> Sending...';
+    api('/api/send', {
+      method: 'POST',
+      body: JSON.stringify({deviceId: curDev.id, data: {type: 'url_update', url: curUrl}})
+    }).then(function(r) {
+      incStat(r.ok, false);
+      appendRows([{n:1, app:curDev.appId, name:curDev.name, ok:r.ok, sc:r.status,
+        msg: r.data.messageId || r.data.name || r.data.error || JSON.stringify(r.data).slice(0,80), skipped:false}]);
+      b.disabled = false;
+      b.innerHTML = '&#128241; Selected Device';
+    }).catch(function(e) {
+      incStat(false, false);
+      b.disabled = false;
+      b.innerHTML = '&#128241; Selected Device';
+    });
+  }
+
+  function sendApp() {
+    if (!curApp) { alert('Sidebar mein app open karo'); return; }
+    if (!curUrl) { alert('Sidebar mein URL select karo'); return; }
+    var idx = -1;
+    for (var i = 0; i < appsData.length; i++) {
+      if (appsData[i].appId === curApp) { idx = i; break; }
+    }
+    function go() {
+      var devs = (devsCache[curApp] || []).filter(function(d) { return d.hasFcm; })
+        .map(function(d) { return {deviceId: d.deviceId, name: d.name, appId: curApp}; });
+      runBatch(devs);
+    }
+    if (!devsCache[curApp]) {
+      api('/api/devices?appId=' + encodeURIComponent(curApp)).then(function(r) {
+        devsCache[curApp] = r.data || [];
+        if (idx >= 0) renderDevs(idx, curApp);
+        go();
+      });
+    } else { go(); }
+  }
+
+  function sendAllApps() {
+    if (!curUrl) { alert('Sidebar mein URL select karo'); return; }
+    if (!confirm('ALL apps ke sabhi devices ko FCM bhejoge?')) return;
+    var queue = appsData.slice();
+    var all = [];
+    function next() {
+      if (!queue.length) {
+        if (!all.length) { alert('Koi FCM-ready device nahi'); return; }
+        runBatch(all);
+        return;
+      }
+      var a = queue.shift();
+      var aid = a.appId;
+      function collect() {
+        (devsCache[aid] || []).filter(function(d) { return d.hasFcm; })
+          .forEach(function(d) { all.push({deviceId: d.deviceId, name: d.name, appId: aid}); });
+        next();
+      }
+      if (devsCache[aid]) { collect(); } else {
+        api('/api/devices?appId=' + encodeURIComponent(aid)).then(function(r) {
+          devsCache[aid] = r.data || [];
+          collect();
+        });
+      }
+    }
+    next();
+  }
+
+  function runBatch(devices) {
+    if (!devices.length) { alert('FCM-ready devices nahi hain'); return; }
+    var bsz = parseInt(el('bsz').value) || 10;
+    var bdel = parseInt(el('bdel').value) || 0;
+    var total = devices.length;
+    var batchCount = Math.ceil(total / bsz);
+    stopFlag = false;
+    setButtons(true);
+    el('prog').style.display = 'block';
+    var done = 0;
+
+    function doNext(bi) {
+      if (stopFlag || bi >= batchCount) {
+        el('pb').style.width = '100%';
+        el('pt').textContent = (stopFlag ? 'Stopped: ' : 'Done: ') + done + '/' + total;
+        setButtons(false);
+        return;
+      }
+      var batch = devices.slice(bi * bsz, (bi + 1) * bsz);
+      el('bi').textContent = 'Batch ' + (bi+1) + '/' + batchCount + ' - ' + batch.length + ' devices';
+      var url = curUrl;
+      var promises = batch.map(function(d, k) {
+        if (stopFlag) {
+          return Promise.resolve({n:done+k+1, app:d.appId, name:d.name, ok:false, sc:0, msg:'stopped', skipped:true});
+        }
+        return api('/api/send', {
+          method: 'POST',
+          body: JSON.stringify({deviceId: d.deviceId, data: {type: 'url_update', url: url}})
+        }).then(function(r) {
+          return {n:done+k+1, app:d.appId, name:d.name, ok:r.ok, sc:r.status,
+            msg: r.data.messageId || r.data.name || r.data.error || JSON.stringify(r.data).slice(0,80), skipped:false};
+        }).catch(function(e) {
+          return {n:done+k+1, app:d.appId, name:d.name, ok:false, sc:0, msg:e.message, skipped:false};
+        });
+      });
+      Promise.all(promises).then(function(rows) {
+        rows.forEach(function(r) { incStat(r.ok, r.skipped); });
+        done += batch.length;
+        el('pb').style.width = Math.round(done / total * 100) + '%';
+        el('pt').textContent = done + ' / ' + total + ' (OK:' + sentOk + ' Fail:' + sentFail + ')';
+        appendRows(rows);
+        if (bi + 1 < batchCount && bdel > 0 && !stopFlag) {
+          setTimeout(function() { doNext(bi + 1); }, bdel);
+        } else {
+          doNext(bi + 1);
+        }
+      });
+    }
+    doNext(0);
+  }
+
+  function appendRows(rows) {
+    el('res-card').style.display = 'block';
+    var tb = el('res-body');
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td style="color:var(--mut);font-family:monospace">' + r.n + '</td>' +
+        '<td style="font-size:10px;color:var(--mut)">' + h(r.app || '') + '</td>' +
+        '<td style="font-weight:700">' + h(r.name) + '</td>' +
+        '<td><span class="pill ' + (r.ok ? 'ok' : 'er') + '">' +
+          (r.skipped ? 'STOP' : r.ok ? 'OK' : 'FAIL') + ' ' + r.sc + '</span></td>' +
+        '<td style="font-size:10px;font-family:monospace;color:var(--dim)">' +
+          h(String(r.msg || '').slice(0, 70)) + '</td>';
+      tb.insertBefore(tr, tb.firstChild);
+    }
+    el('summ').innerHTML =
+      '<strong style="color:var(--grn)">OK: ' + sentOk + '</strong> ' +
+      (sentFail ? '<strong style="color:var(--red)">Fail: ' + sentFail + '</strong> ' : '') +
+      '<span style="color:var(--mut)">Total: ' + (sentOk + sentFail) + '</span>';
+  }
+
+  function clearAll() {
+    el('res-body').innerHTML = '';
+    el('res-card').style.display = 'none';
+    el('prog').style.display = 'none';
+    sentOk = 0; sentFail = 0; sentSkip = 0;
+    el('s-sent').textContent = '0';
+    el('s-fail').textContent = '0';
+    el('s-skip').textContent = '0';
+  }
+
+  el('btn-ref').addEventListener('click', loadAll);
+  el('btn-add').addEventListener('click', addUrl);
+  el('url-val').addEventListener('keydown', function(e) { if (e.key === 'Enter') addUrl(); });
+  el('btn-clr-url').addEventListener('click', function() { curUrl=''; curUrlName=''; updateCurUrl(); renderUrls(); });
+  el('btn-one').addEventListener('click', sendOne);
+  el('btn-app').addEventListener('click', sendApp);
+  el('btn-all').addEventListener('click', sendAllApps);
+  el('btn-clr').addEventListener('click', clearAll);
+  el('btn-clr2').addEventListener('click', clearAll);
+  el('stop-btn').addEventListener('click', function() { stopFlag = true; el('pt').textContent = 'Stopping...'; });
+  el('btn-copy').addEventListener('click', function() {
+    var rows = document.querySelectorAll('#res-body tr');
+    var lines = [];
+    rows.forEach(function(tr) {
+      lines.push(Array.from(tr.querySelectorAll('td')).map(function(td) {
+        return td.textContent.trim();
+      }).join('\t'));
+    });
+    navigator.clipboard.writeText(lines.join('\n')).catch(function() {});
   });
 
-  loadStats();
+  loadUrls();
+  loadAll();
 }());
 </script>
 </body>
