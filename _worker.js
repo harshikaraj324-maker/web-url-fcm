@@ -1,11 +1,10 @@
-// web-url-fcm — Simple URL push sender. Direct Neon DB + Firebase FCM.
+// web-url-fcm — Direct Neon DB + Firebase FCM. No auth.
 const NEON_HOST  = "ep-lingering-haze-aquknql6-pooler.c-8.us-east-1.aws.neon.tech";
 const NEON_CONN  = "postgresql://neondb_owner:npg_kP9BDgTWj0xf@ep-lingering-haze-aquknql6-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
 const FB_PROJECT = "main-fcm";
 const FB_EMAIL   = "firebase-adminsdk-fbsvc@main-fcm.iam.gserviceaccount.com";
 const FB_KEY     = "-----BEGIN PRIVATE KEY-----\nMIIEugIBADANBgkqhkiG9w0BAQEFAASCBKQwggSgAgEAAoIBAQDZMJpUVmIkZjuC\nhvHNzJg3Mu9OL/Dw2mXZif8EIn4vE9R1kwQyd68hqBHOwV9Dy0K8zwrIU09GfKND\nh5Aij5TrCobAFzJgiOMDdm8+4a8NXQcx7J/C2Itj5gStYQHxwqmT++ZzNzvmdZkf\nOrY5MhY2zajq+fgpERyHE8KCD0UirFYsWwEqn6lxv9oyGCBkbq9fKfnE5lQxwCDh\nMUDMTMFR1dYkGsbErqTLJfDJ0LS8gf3PCRh2jWsWDYWVsrBtQMOleqIAchciQZ4N\n1CbcYT/HaX+ZkmdcrFSxue0Cb6ihWed7PDlb0bRbqH3+WJ1Z8EHou+pnN6sSdY3u\nA3VRcd9pAgMBAAECgf8CLLZbo3GVsWNliFjTQ6j3+zS0vDeR1xKip/FL0GQYUiXZ\nyfTuKzenhLFrYizKubFUNeIk8fsiItyJWkhpz125sjjHlnChx5/vsdnPwoLvnbKw\nsbxso5RND2ncK6ywzZgL+FeyuPMpgNaRYS2fR9KGLpxtT7V1T1oyey8oAQ9XClRD\nPycROqBAkCrmhcaA5vj1K9kDO/RxAmurS6CtpE9qcUi0eNhBUvPYDRi1eWytvoiF\nCAcJlGoO6qOmi+x1qIGxxwzYwHYv2YHTTcUl2H2wXknpcQ16SzRtUi7ESnArGxkE\ntIO5untib+97Z0n/Rlzc/4tj39qtek2+uML+eRkCgYEA81oXRw3ymSvyISbifRdD\nJjO4f12SuUGmQ4NqEDThd2WZEhX4vqt/D91Bm3mzGha9y0dV991QUTvLHPxJvBlw\nd4mY3enbwtNjB6WKKMoJS32nL9vTsyUZt53ITnGvStJWjbVBfLMxMMdgHWRBZAkx\nhbKZPJoKzVifYtru6LnZgw0CgYEA5Hpp5VdGUp+iiNf7nir+hhdlTsB9aSjDJAZ3\nnWjo9cmD1ZAOhzZ5BbuW13hy4zqErVjKOzsXkrTKzz9sSQspARCRtckFH6S3nPIB\n4CM5qCP650YHxwUsUUwmgPBSJJL+Q+KEZ+6Kh3ewUege6hzZ//UCK/5b4+cQSeyD\nIRQQJs0CgYBuLKCTS85E6K+DsN4jsi91kT77cvrlosJKmKmhUr+tVbMajBYFBRHO\nteZpJI0gx6D/8nkKcglV7dNEeThMz9uqUwKBncogB6IzKRBG7UmOAwJ5WXYcCjT9\ne5LfaPrqzhXfrGtMsLgZlHqAdA5i4wKnvDdCR5+SXogyslotxU6j1QKBgC+h8bfV\ndRy+mSUMWjHEZuHPuNgtOzgUPnKhQoi3mXG8fFamvNClo591V2I+gz0qMwTssOSe\nUjDMrkd8wneL8xV8vdP3P7E0Ju96aLewwFF0htd2eyKbynx8cr6I26cyWf4PGGmO\niqTpaAH7cY5/S1eYXcaMNd4SiwvOWhwoUaG1AoGAGfpFDp5cp210vV360Pf86DFa\nqc5+y+TLRrwLkpE6DlVscDBVDt1NhzaJGgTeo5kniv1c2rdvq0UVR3GdjORQggSf\nptX03BRuoSKtuHZNxWQnqQpMorQmDZgSklJlLTIWv5aq/iyCv78u815rxtvDKNH9\n+hW5Y1czi5JdGikljiw=\n-----END PRIVATE KEY-----\n";
 
-// ── Neon HTTP ─────────────────────────────────────────────────────────────────
 async function neon(sql, params) {
   const r = await fetch('https://' + NEON_HOST + '/sql', {
     method: 'POST',
@@ -17,7 +16,6 @@ async function neon(sql, params) {
   return j.rows || [];
 }
 
-// ── FCM ───────────────────────────────────────────────────────────────────────
 function b64u(buf) {
   const u8 = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
   let s = ''; for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
@@ -59,26 +57,26 @@ async function fcmToken() {
   return _tok;
 }
 
-async function sendOne(token, url) {
+async function sendFcm(token, data) {
   const at = await fcmToken();
-  const data = { type: 'url_update', url: String(url) };
-  data.payload = JSON.stringify({ url: String(url) });
+  const sd = {};
+  for (const [k, v] of Object.entries(data)) sd[k] = String(v);
+  const nested = {};
+  for (const [k, v] of Object.entries(sd)) if (k !== 'type') nested[k] = v;
+  sd.payload = JSON.stringify(nested);
   const r = await fetch(
     'https://fcm.googleapis.com/v1/projects/' + FB_PROJECT + '/messages:send',
     {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + at, 'content-type': 'application/json' },
-      body: JSON.stringify({
-        message: { token, android: { priority: 'high', ttl: '3600s' }, data }
-      })
+      body: JSON.stringify({ message: { token, android: { priority: 'high', ttl: '3600s' }, data: sd } })
     }
   );
   const body = await r.json();
-  if (!r.ok) return { ok: false, err: body };
-  return { ok: true, messageId: body.name };
+  if (!r.ok) throw Object.assign(new Error('FCM'), { fcmStatus: r.status, fcmBody: body });
+  return body;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function jres(data, status) {
   return new Response(JSON.stringify(data), {
     status: status || 200,
@@ -86,7 +84,6 @@ function jres(data, status) {
   });
 }
 
-// ── Worker ────────────────────────────────────────────────────────────────────
 export default {
   async fetch(request, env) {
     const url  = new URL(request.url);
@@ -106,49 +103,60 @@ export default {
       try {
         // GET /api/stats
         if (path === '/api/stats' && request.method === 'GET') {
-          const [[a], [d], [f]] = await Promise.all([
+          const [[a],[d],[m],[o],[f]] = await Promise.all([
             neon('SELECT COUNT(*) cnt FROM apps'),
             neon('SELECT COUNT(*) cnt FROM devices'),
+            neon('SELECT COUNT(*) cnt FROM messages'),
+            neon("SELECT COUNT(*) cnt FROM devices WHERE status='online'"),
             neon('SELECT COUNT(*) cnt FROM devices WHERE fcm_token IS NOT NULL')
           ]);
-          return jres({ apps: +a.cnt, devices: +d.cnt, fcmReady: +f.cnt });
+          return jres({ apps:+a.cnt, devices:+d.cnt, messages:+m.cnt, online:+o.cnt, fcmReady:+f.cnt });
         }
 
-        // POST /api/send-all  { url: "https://..." }
-        if (path === '/api/send-all' && request.method === 'POST') {
-          const body = await request.json();
-          const targetUrl = body.url;
-          if (!targetUrl) return jres({ error: 'url required' }, 400);
-
-          // Fetch all FCM tokens
+        // GET /api/apps
+        if (path === '/api/apps' && request.method === 'GET') {
           const rows = await neon(
-            'SELECT device_id, fcm_token FROM devices WHERE fcm_token IS NOT NULL'
+            'SELECT a.app_id, a.name, a.status, ' +
+            'COUNT(d.id)::int dc, COUNT(CASE WHEN d.fcm_token IS NOT NULL THEN 1 END)::int fc ' +
+            'FROM apps a LEFT JOIN devices d ON d.app_id=a.app_id ' +
+            'GROUP BY a.id,a.app_id,a.name,a.status ORDER BY a.id'
           );
-          if (!rows.length) return jres({ sent: 0, failed: 0, total: 0 });
+          return jres(rows.map(r => ({
+            appId: r.app_id, name: r.name, status: r.status,
+            deviceCount: r.dc, fcmCount: r.fc
+          })));
+        }
 
-          // Send in parallel batches of 50
-          let sent = 0, failed = 0;
-          const BATCH = 50;
-          for (let i = 0; i < rows.length; i += BATCH) {
-            const batch = rows.slice(i, i + BATCH);
-            const results = await Promise.allSettled(
-              batch.map(r => sendOne(r.fcm_token, targetUrl))
-            );
-            for (const res of results) {
-              if (res.status === 'fulfilled' && res.value.ok) sent++;
-              else failed++;
-            }
-          }
-          return jres({ sent, failed, total: rows.length });
+        // GET /api/devices?appId=...
+        if (path === '/api/devices' && request.method === 'GET') {
+          const aid = url.searchParams.get('appId');
+          const rows = aid
+            ? await neon('SELECT device_id,app_id,name,status,fcm_token FROM devices WHERE app_id=$1 ORDER BY name', [aid])
+            : await neon('SELECT device_id,app_id,name,status,(fcm_token IS NOT NULL) has_fcm FROM devices ORDER BY app_id,name');
+          return jres(rows.map(r => ({
+            deviceId: r.device_id, appId: r.app_id, name: r.name,
+            status: r.status, hasFcm: !!(r.fcm_token || r.has_fcm)
+          })));
+        }
+
+        // POST /api/send  { deviceId, data }
+        if (path === '/api/send' && request.method === 'POST') {
+          const body = await request.json();
+          const { deviceId, data } = body;
+          if (!deviceId) return jres({ error: 'deviceId required' }, 400);
+          const rows = await neon('SELECT fcm_token FROM devices WHERE device_id=$1', [deviceId]);
+          if (!rows.length || !rows[0].fcm_token) return jres({ error: 'no FCM token' }, 404);
+          const result = await sendFcm(rows[0].fcm_token, data || {});
+          return jres(result);
         }
 
         return jres({ error: 'not found' }, 404);
       } catch (e) {
+        if (e.fcmBody) return jres({ error: e.fcmBody }, e.fcmStatus || 500);
         return jres({ error: e.message }, 500);
       }
     }
 
-    // Static assets (index.html)
     return env.ASSETS.fetch(request);
   }
 };
