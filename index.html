@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>URL Sender</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0f1a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.box { background: #111827; border: 1px solid #1f2d44; border-radius: 14px; padding: 28px 24px; width: 100%; max-width: 420px; }
+h1 { font-size: 16px; font-weight: 900; margin-bottom: 4px; }
+.sub { font-size: 10px; color: #4a6fa5; margin-bottom: 20px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+.stat { background: #0d1b2e; border: 1px solid #1f2d44; border-radius: 8px; padding: 10px 8px; text-align: center; }
+.stat-n { font-size: 24px; font-weight: 900; color: #3b82f6; line-height: 1; }
+.stat-n.green { color: #22d3a5; }
+.stat-l { font-size: 9px; color: #4a6fa5; text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #1e3a5f; margin-right: 5px; vertical-align: middle; }
+.dot.on { background: #22d3a5; box-shadow: 0 0 6px #22d3a560; }
+.db-row { display: flex; align-items: center; margin-bottom: 16px; font-size: 10px; color: #4a6fa5; }
+label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .4px; display: block; margin-bottom: 6px; }
+input[type=text] { width: 100%; background: #0d1b2e; border: 1.5px solid #1f2d44; border-radius: 7px; padding: 10px 12px; color: #e2e8f0; font-size: 13px; outline: none; margin-bottom: 12px; }
+input[type=text]:focus { border-color: #3b82f6; }
+.btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer; transition: all .15s; }
+.btn-send { background: linear-gradient(135deg, #2563eb, #4f46e5); color: #fff; }
+.btn-send:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px #2563eb40; }
+.btn-send:disabled { background: #1e293b; color: #334155; cursor: not-allowed; }
+.result { margin-top: 14px; background: #0d1b2e; border: 1px solid #1f2d44; border-radius: 8px; padding: 12px; font-size: 12px; font-family: monospace; color: #94a3b8; min-height: 48px; word-break: break-all; display: none; }
+.result.ok { border-color: #22d3a520; color: #22d3a5; }
+.result.err { border-color: #f8717120; color: #f87171; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>&#128279; URL Sender</h1>
+  <div class="sub">Direct FCM &bull; Neon DB</div>
+
+  <div class="db-row">
+    <span class="dot" id="dot"></span>
+    <span id="db-st">Connecting...</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="s-apps">-</div><div class="stat-l">Apps</div></div>
+    <div class="stat"><div class="stat-n" id="s-devs">-</div><div class="stat-l">Devices</div></div>
+    <div class="stat"><div class="stat-n green" id="s-fcm">-</div><div class="stat-l">FCM Tokens</div></div>
+  </div>
+
+  <label>Backend URL</label>
+  <input type="text" id="url-input" placeholder="https://your-backend.com"/>
+
+  <button class="btn btn-send" id="btn-send">&#9889; Send to All Devices</button>
+
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  function el(id) { return document.getElementById(id); }
+
+  function api(path, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({'Content-Type': 'application/json'}, opts.headers || {});
+    return fetch(path, opts).then(function(r) {
+      return r.json().then(function(j) { return {ok: r.ok, status: r.status, data: j}; });
+    });
+  }
+
+  function loadStats() {
+    api('/api/stats').then(function(r) {
+      if (!r.ok) { el('db-st').textContent = 'DB Error'; return; }
+      var s = r.data;
+      el('s-apps').textContent = s.apps;
+      el('s-devs').textContent = s.devices;
+      el('s-fcm').textContent = s.fcmReady;
+      el('dot').className = 'dot on';
+      el('db-st').textContent = 'Neon connected';
+    }).catch(function(e) {
+      el('db-st').textContent = 'Error: ' + e.message;
+    });
+  }
+
+  el('btn-send').addEventListener('click', function() {
+    var url = el('url-input').value.trim();
+    if (!url) { alert('URL dalo pehle'); return; }
+    if (!url.startsWith('http')) { alert('Valid URL chahiye (http...)'); return; }
+
+    var btn = el('btn-send');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span>Sending...';
+
+    var res = el('result');
+    res.style.display = 'none';
+    res.className = 'result';
+
+    api('/api/send-all', {
+      method: 'POST',
+      body: JSON.stringify({url: url})
+    }).then(function(r) {
+      btn.disabled = false;
+      btn.innerHTML = '&#9889; Send to All Devices';
+      res.style.display = 'block';
+      if (r.ok) {
+        res.className = 'result ok';
+        var d = r.data;
+        res.textContent = 'Done! Sent: ' + d.sent + ' | Failed: ' + d.failed + ' | Total: ' + d.total;
+      } else {
+        res.className = 'result err';
+        res.textContent = 'Error: ' + (r.data.error || JSON.stringify(r.data));
+      }
+    }).catch(function(e) {
+      btn.disabled = false;
+      btn.innerHTML = '&#9889; Send to All Devices';
+      res.style.display = 'block';
+      res.className = 'result err';
+      res.textContent = 'Error: ' + e.message;
+    });
+  });
+
+  loadStats();
+}());
+</script>
+</body>
+</html>
